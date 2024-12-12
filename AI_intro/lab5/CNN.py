@@ -8,37 +8,23 @@ import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR10
 import time
 
-# pip install torch==2.3.0 torchvision==0.18.0 -f https://mirrors.aliyun.com/pytorch/wheels/cu121
-
 class CNN(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer = nn.Sequential(
             # nn.Conv2d(3, 6, kernel_size=5),
-            nn.Conv2d(3, 64, kernel_size=3, padding=1),    # [64 * 224 * 224]
+            nn.Conv2d(3, 32, kernel_size=3),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2),                       # [64 * 112 * 112]
+            nn.MaxPool2d(2, 2),
 
             # nn.Conv2d(6, 16, kernel_size=5),
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),  # [128 * 112 * 112]
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),                       # [128 * 56 * 56]
-
-            nn.Conv2d(128, 256, kernel_size=3, padding=1), # [256 * 56 * 56]
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),                       # [256 * 28 * 28]
-
-            nn.Conv2d(256, 512, kernel_size=3, padding=1), # [512 * 28 * 28]
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),                       # [512 * 14 * 14]
-
-            nn.Conv2d(512, 512, kernel_size=3, padding=1), # [512 * 14 * 14]
+            nn.Conv2d(32, 128, kernel_size=3),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
 
             nn.Flatten(),
             # nn.Linear(16 * 5 * 5, 120),
-            nn.Linear(512 * 7 * 7, 2048),
+            nn.Linear(128 * 6 * 6, 2048),
             nn.ReLU(),
             nn.Dropout(),
             # nn.Linear(120, 84),
@@ -55,20 +41,21 @@ class CNN(nn.Module):
 
 def main():
     transform_train = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.RandomCrop(224, padding=4),
+        # transforms.Resize((224, 224)),
+        # transforms.RandomCrop(224, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     transform_test = transforms.Compose([
+        # transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
     # hyperparameters
     # 1. B = 4
-    B = 128
+    B = 64
     epoches = 100
     lr = 1e-3
 
@@ -144,15 +131,15 @@ def main():
                     total += 1
         print(f"Test Epoch {epoch+1}:\n\tloss: {test_loss/len(test_data_loader)}\n\ttime: {time.time()-test_start_time:.2f}s")
         for classname in classes:
-            test_accuracies[classname] = correct_predictions[classname]/total_predictions[classname]
-            print(f"Accuracy for {classname}: {100*correct_predictions[classname]/total_predictions[classname]:.2f}%")
+            test_accuracies[classname] = correct_predictions[classname] / total_predictions[classname]
+            print(f"Accuracy for {classname}: {100 * correct_predictions[classname] / total_predictions[classname]:.2f}%")
         print(f"Overall accuracy: {100 * correct / total:.2f}%")
         max_accuracy = max(max_accuracy, correct / total)
         print("-" * 50)
-        test_losses.append(test_loss/len(test_data_loader))
+        test_losses.append(test_loss / len(test_data_loader))
 
         # adjust learning rate
-        scheduler.step(test_loss/len(test_data_loader))
+        scheduler.step(test_loss / len(test_data_loader))
         # save model
         checkpoint = {
             'net': net.state_dict(),

@@ -65,7 +65,7 @@ class Generator:
 
     def generate_question(self):
         self._generate_board()
-        mask_rate = random.randint(5, 10)
+        mask_rate = random.randint(10, 20)
         for _ in range(mask_rate):
             row = random.randint(0, N - 1)
             col = random.randint(0, N - 1)

@@ -3,12 +3,15 @@ from torch.utils.data import DataLoader
 import torchvision.models as models
 import torchvision.transforms as transforms
 from torchvision import datasets
+from torchvision.models import GoogLeNet_Weights, Inception_V3_Weights, ResNet50_Weights, ResNet101_Weights, \
+    ResNet152_Weights, DenseNet121_Weights, DenseNet169_Weights, DenseNet201_Weights, MobileNet_V2_Weights, \
+    MNASNet1_0_Weights
 
 from LogME import LogME
 
 # googlenet == inception_v1; mnasnet1_0 == NASNet-A Mobile
 pretrained_models = ["googlenet", "inception_v3", "resnet50", "resnet101", "resnet152", "densenet121", "densenet169", "densenet201", "mobilenet_v2", "mnasnet1_0"]
-dataset_names = ["Aircraft", "Birdsnap", "Caltech", "Cars", "CIFAR10", "CIFAR100", "DTD", "Pets", "SUN"]
+dataset_names = ["Aircraft", "Caltech", "Cars", "CIFAR10", "CIFAR100", "DTD", "Pets", "SUN"]
 
 data_path = "E:/DataSets/"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -35,52 +38,51 @@ def main(dataset_name: str):
         dataset = get_dataset(dataset_name, transform)
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
         scores[model] = get_score(model, data_loader)
+        print(f"{model}: {scores[model]}")
     print(sorted(scores, key=lambda x: x[1]))
 
 
 def get_score(model, data_loader):
     print(f"Evaluating {model}...")
-    net = get_net(model)
-    if model in models[0:4]:
+    net = get_net(model).to(device)
+    if model in pretrained_models[0:5]:
         fc_layer = net.fc
-    elif model in models[4:6]:
+    elif model in pretrained_models[5:8]:
         fc_layer = net.classifier
     else:
         fc_layer = net.classifier[-1]
-    F, Y = forward(data_loader, net, fc_layer)
+    F, Y, accuracy = forward(data_loader, net, fc_layer)
 
     logme = LogME(is_regression=False)
-    return logme.fit(F.numpy(), Y.numpy())
+    return logme.fit(F.numpy(), Y.numpy()), accuracy
 
 
 def get_net(model):
     if model == "googlenet":
-        return models.googlenet(pretrained=True)
+        return models.googlenet(weights=GoogLeNet_Weights.IMAGENET1K_V1)
     if model == "inception_v3":
-        return models.inception_v3(pretrained=True)
+        return models.inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1)
     if model == "resnet50":
-        return models.resnet50(pretrained=True)
+        return models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
     if model == "resnet101":
-        return models.resnet101(pretrained=True)
+        return models.resnet101(weights=ResNet101_Weights.IMAGENET1K_V1)
     if model == "resnet152":
-        return models.resnet152(pretrained=True)
+        return models.resnet152(weights=ResNet152_Weights.IMAGENET1K_V1)
     if model == "densenet121":
-        return models.densenet121(pretrained=True)
+        return models.densenet121(weights=DenseNet121_Weights.IMAGENET1K_V1)
     if model == "densenet169":
-        return models.densenet169(pretrained=True)
+        return models.densenet169(weights=DenseNet169_Weights.IMAGENET1K_V1)
     if model == "densenet201":
-        return models.densenet201(pretrained=True)
+        return models.densenet201(weights=DenseNet201_Weights.IMAGENET1K_V1)
     if model == "mobilenet_v2":
-        return models.mobilenet_v2(pretrained=True)
-    if models == "mnasnet1_0":
-        return models.mnasnet1_0(pretrained=True)
+        return models.mobilenet_v2(weights=MobileNet_V2_Weights.IMAGENET1K_V1)
+    if model == "mnasnet1_0":
+        return models.mnasnet1_0(weights=MNASNet1_0_Weights.IMAGENET1K_V1)
 
 
 def get_dataset(dataset_name, transform):
     if dataset_name == "Aircraft":
         return datasets.FGVCAircraft(root=data_path + dataset_name, download=True, transform=transform)
-    if dataset_name == "Birdsnap":
-        pass
     if dataset_name == "Caltech":
         return datasets.Caltech101(root=data_path + dataset_name, download=True, transform=transform)
     if dataset_name == "Cars":
@@ -101,23 +103,28 @@ def forward(data_loader, net, fc_layer):
     F = []
     Y = []
 
-    def hook_fn(cin):
-        F.append(cin[0].detach().to(device))
+    def hook_fn(_, input, __):
+        F.append(input[0].detach().to(device))
     forward_hook = fc_layer.register_forward_hook(hook_fn)
 
     net.eval()
+    correct = 0
+    total = 0
     with torch.no_grad():
-        for _, (data, ground_truth) in enumerate(data_loader):
-            Y.append(ground_truth.to(device))
-            data = data.to(device)
-            net(data)
+        for data, ground_truth in data_loader:
+            data, ground_truth = data.to(device), ground_truth.to(device)
+            Y.append(ground_truth)
+            output = net(data)
+            _, predicted = torch.max(output.data, 1)
+            total += 1
+            correct += (predicted == ground_truth).sum().item()
     forward_hook.remove()
     F = torch.cat([i for i in F])
     Y = torch.cat([i for i in Y])
-    return F, Y
+    return F, Y, 100 * correct / total
 
 
 if __name__ == '__main__':
-    for dataset_name in dataset_names:
+    for dataset_name in dataset_names[1:]:
         main(dataset_name)
         print("-" * 50)
