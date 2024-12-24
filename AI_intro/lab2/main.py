@@ -7,7 +7,7 @@ HEIGHT = 1000
 WHITE = -1
 BLACK = 1
 N = 15
-DEPTH = 2
+DEPTH = 1
 p.init()
 window = p.display.set_mode((WIDTH, HEIGHT))
 p.display.set_caption("Gomoku")
@@ -46,6 +46,8 @@ def init():
     global is_black, is_finish, step
     is_black = 1
     is_finish = False
+    ai.win = False
+    ai.win_pos = []
     step = 0
     for i in range(N):
         for j in range(N):
