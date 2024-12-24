@@ -20,26 +20,27 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 batch_size = 48
 
 
+def grayscale_to_rgb(x):
+    return x.repeat(3, 1, 1) if x.shape[0] == 1 else x
+
+
 def main(dataset_name: str):
     scores = {}
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
-
+    image_size = 224
     for model in pretrained_models:
         if model == "inception_v3":
-            transform = transforms.Compose([
-                transforms.Resize((299, 299)),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            ])
+            image_size = 299
+        transform = transforms.Compose([
+            transforms.Resize((image_size, image_size)),
+            transforms.ToTensor(),
+            transforms.Lambda(grayscale_to_rgb),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
         dataset = get_dataset(dataset_name, transform)
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
         scores[model] = get_score(model, data_loader)
         print(f"{model}: {scores[model]}")
-    print(sorted(scores, key=lambda x: x[1]))
+    print(sorted(scores, key=lambda x: x[1][0]))
 
 
 def get_score(model, data_loader):
@@ -80,13 +81,13 @@ def get_net(model):
         return models.mnasnet1_0(weights=MNASNet1_0_Weights.IMAGENET1K_V1)
 
 
-def get_dataset(dataset_name, transform):
+def get_dataset(dataset_name: str, transform):
     if dataset_name == "Aircraft":
         return datasets.FGVCAircraft(root=data_path + dataset_name, download=True, transform=transform)
     if dataset_name == "Caltech":
         return datasets.Caltech101(root=data_path + dataset_name, download=True, transform=transform)
     if dataset_name == "Cars":
-        return datasets.StanfordCars(root=data_path + dataset_name, download=True, transform=transform, split="test")
+        return datasets.StanfordCars(root=data_path + dataset_name, download=False, transform=transform, split="test")  # automatic download is not working
     if dataset_name == "CIFAR10":
         return datasets.CIFAR10(root=data_path + dataset_name, download=True, transform=transform, train=False)
     if dataset_name == "CIFAR100":
@@ -125,6 +126,6 @@ def forward(data_loader, net, fc_layer):
 
 
 if __name__ == '__main__':
-    for dataset_name in dataset_names[1:]:
+    for dataset_name in dataset_names[2:]:
         main(dataset_name)
         print("-" * 50)

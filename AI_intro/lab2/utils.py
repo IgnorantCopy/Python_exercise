@@ -109,18 +109,16 @@ class TreeNode:
     def add_child(self, child):
         self.children.append(child)
         child.parent = self
-        child.left = self.left
-        child.right = self.right
 
     def update(self, score):
-        if self.piece_type == -1:
+        if self.piece_type == 1:
             self.right = min(self.right, score)
-            if self.parent and self.right <= self.parent.left:
+            if self.right <= self.left:
                 self.score = self.right
                 return True
-        elif self.piece_type == 1:
+        elif self.piece_type == -1:
             self.left = max(self.left, score)
-            if self.parent and self.left >= self.parent.right:
+            if self.left >= self.right:
                 self.score = self.left
                 return True
         return False
