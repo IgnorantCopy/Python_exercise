@@ -33,17 +33,20 @@ def main(dataset_name: str):
     fine_tune(dataset_name)
     for model in pretrained_models:
         transform = get_transform(model)
-        dataset, _ = get_dataset(dataset_name, transform)
+        dataset, num_of_classes = get_dataset(dataset_name, transform)
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-        scores[model] = get_score(model, dataset_name, data_loader)
+        scores[model] = get_score(model, dataset_name, data_loader, num_of_classes)
         print(f"{model}: {scores[model]}")
     print(sorted(scores, key=lambda x: x[1][0]))
 
 
-def get_score(model, dataset_name, data_loader):
+def get_score(model, dataset_name, data_loader, num_of_classes):
     print(f"Evaluating {model}...")
-    net = torch.load(f"models/fine_tuned_{model}_{dataset_name}.pth").to(device)
+    net = get_net(model)
     fc_layer = get_fc_layer(model, net)
+    fc_layer.out_features = num_of_classes
+    net.load_state_dict(torch.load(f"models/fine_tuned_{model}_{dataset_name}.pth"))
+    net.to(device)
     F, Y, accuracy = forward(data_loader, net, fc_layer)
 
     logme = LogME(is_regression=False)
@@ -127,8 +130,10 @@ def forward(data_loader, net, fc_layer):
             Y.append(ground_truth)
             output = net(data)
             _, predicted = torch.max(output.data, 1)
-            total += 1
-            correct += (predicted == ground_truth).sum().item()
+            for label, prediction in zip(ground_truth, predicted):
+                if label == prediction:
+                    correct += 1
+                total += 1
     forward_hook.remove()
     F = torch.cat([i for i in F])
     Y = torch.cat([i for i in Y])
