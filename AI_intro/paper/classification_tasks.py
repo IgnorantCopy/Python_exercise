@@ -1,5 +1,8 @@
+import os.path
+import time
 import torch
 from torch.utils.data import DataLoader
+from torch.optim import lr_scheduler
 import torchvision.models as models
 import torchvision.transforms as transforms
 from torchvision import datasets
@@ -18,7 +21,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # hyperparameters
 batch_size = 48
-
+lr = 1e-3
+epoches = 100
 
 def grayscale_to_rgb(x):
     return x.repeat(3, 1, 1) if x.shape[0] == 1 else x
@@ -26,36 +30,34 @@ def grayscale_to_rgb(x):
 
 def main(dataset_name: str):
     scores = {}
-    image_size = 224
+    fine_tune(dataset_name)
     for model in pretrained_models:
-        if model == "inception_v3":
-            image_size = 299
-        transform = transforms.Compose([
+        transform = get_transform(model)
+        dataset, _ = get_dataset(dataset_name, transform)
+        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+        scores[model] = get_score(model, dataset_name, data_loader)
+        print(f"{model}: {scores[model]}")
+    print(sorted(scores, key=lambda x: x[1][0]))
+
+
+def get_score(model, dataset_name, data_loader):
+    print(f"Evaluating {model}...")
+    net = torch.load(f"models/fine_tuned_{model}_{dataset_name}.pth").to(device)
+    fc_layer = get_fc_layer(model, net)
+    F, Y, accuracy = forward(data_loader, net, fc_layer)
+
+    logme = LogME(is_regression=False)
+    return logme.fit(F.numpy(), Y.numpy()), accuracy
+
+
+def get_transform(model):
+    image_size = 299 if model == "inception_v3" else 224
+    return transforms.Compose([
             transforms.Resize((image_size, image_size)),
             transforms.ToTensor(),
             transforms.Lambda(grayscale_to_rgb),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
-        dataset = get_dataset(dataset_name, transform)
-        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-        scores[model] = get_score(model, data_loader)
-        print(f"{model}: {scores[model]}")
-    print(sorted(scores, key=lambda x: x[1][0]))
-
-
-def get_score(model, data_loader):
-    print(f"Evaluating {model}...")
-    net = get_net(model).to(device)
-    if model in pretrained_models[0:5]:
-        fc_layer = net.fc
-    elif model in pretrained_models[5:8]:
-        fc_layer = net.classifier
-    else:
-        fc_layer = net.classifier[-1]
-    F, Y, accuracy = forward(data_loader, net, fc_layer)
-
-    logme = LogME(is_regression=False)
-    return logme.fit(F.numpy(), Y.numpy()), accuracy
 
 
 def get_net(model):
@@ -81,23 +83,31 @@ def get_net(model):
         return models.mnasnet1_0(weights=MNASNet1_0_Weights.IMAGENET1K_V1)
 
 
+def get_fc_layer(model, net):
+    if model in pretrained_models[0:5]:
+        return net.fc
+    elif model in pretrained_models[5:8]:
+        return net.classifier
+    return net.classifier[-1]
+
+
 def get_dataset(dataset_name: str, transform):
     if dataset_name == "Aircraft":
-        return datasets.FGVCAircraft(root=data_path + dataset_name, download=True, transform=transform)
+        return datasets.FGVCAircraft(root=data_path + dataset_name, download=True, transform=transform), 100
     if dataset_name == "Caltech":
-        return datasets.Caltech101(root=data_path + dataset_name, download=True, transform=transform)
+        return datasets.Caltech101(root=data_path + dataset_name, download=True, transform=transform), 101
     if dataset_name == "Cars":
-        return datasets.StanfordCars(root=data_path + dataset_name, download=False, transform=transform, split="test")  # automatic download is not working
+        return datasets.StanfordCars(root=data_path + dataset_name, download=False, transform=transform, split="test"), 196  # automatic download is not working
     if dataset_name == "CIFAR10":
-        return datasets.CIFAR10(root=data_path + dataset_name, download=True, transform=transform, train=False)
+        return datasets.CIFAR10(root=data_path + dataset_name, download=True, transform=transform, train=False), 10
     if dataset_name == "CIFAR100":
-        return datasets.CIFAR100(root=data_path + dataset_name, download=True, transform=transform, train=False)
+        return datasets.CIFAR100(root=data_path + dataset_name, download=True, transform=transform, train=False), 100
     if dataset_name == "DTD":
-        return datasets.DTD(root=data_path + dataset_name, download=True, transform=transform, split="val")
+        return datasets.DTD(root=data_path + dataset_name, download=True, transform=transform, split="val"), 47
     if dataset_name == "Pets":
-        return datasets.OxfordIIITPet(root=data_path + dataset_name, download=True, transform=transform)
+        return datasets.OxfordIIITPet(root=data_path + dataset_name, download=True, transform=transform), 37
     if dataset_name == "SUN":
-        return datasets.SUN397(root=data_path + dataset_name, download=True, transform=transform)
+        return datasets.SUN397(root=data_path + dataset_name, download=True, transform=transform), 397
 
 
 def forward(data_loader, net, fc_layer):
@@ -125,7 +135,53 @@ def forward(data_loader, net, fc_layer):
     return F, Y, 100 * correct / total
 
 
+def fine_tune(dataset_name:str):
+    for model_name in pretrained_models:
+        if os.path.exists(f"models/fine_tuned_{model_name}_{dataset_name}.pth"):
+            print(f'Fine-tuned {model_name} on {dataset_name} already exists.')
+            continue
+        print(f"Fine-tuning {model_name} on {dataset_name}...")
+        dataset, num_of_classes = get_dataset(dataset_name, get_transform(model_name))
+        net = get_net(model_name)
+        for param in net.parameters():
+            param.requires_grad = False
+        fc_layer = get_fc_layer(model_name, net)
+        fc_layer.out_features = num_of_classes
+        fc_layer.requires_grad_(True)
+        net.to(device)
+        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
+        optimizer = torch.optim.SGD(fc_layer.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
+        criterion = torch.nn.CrossEntropyLoss()
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
+        min_loss = float("inf")
+        net.train()
+        for epoch in range(epoches):
+            train_loss = 0.
+            start_time = time.time()
+            for inputs, labels in data_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+                optimizer.zero_grad()
+                if model_name == "inception_v3":
+                    outputs, _ = net(inputs)
+                else:
+                    outputs = net(inputs)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+                train_loss += loss.item()
+            train_loss /= len(data_loader)
+            scheduler.step(train_loss)
+            if train_loss < min_loss:
+                min_loss = train_loss
+                torch.save(net.state_dict(), f"models/fine_tuned_{model_name}_{dataset_name}.pth")
+                print(f"Fine-tuned {model_name} on {dataset_name} saved on epoch {epoch+1}.")
+            print(f"Epoch {epoch+1}/{epoches}, Train Loss: {train_loss:.4f},"
+                  f" Remaining Time: {(epoches-epoch-1)*(time.time()-start_time)/60:.2f} minutes")
+        print(f"Fine-tuning {model_name} on {dataset_name} completed.")
+        print("-" * 50)
+
+
 if __name__ == '__main__':
-    for dataset_name in dataset_names[2:]:
+    for dataset_name in dataset_names:
         main(dataset_name)
         print("-" * 50)

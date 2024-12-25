@@ -161,4 +161,5 @@ cython_debug/
 
 # Customize
 AI_intro/lab5/models
+AI_intro/paper/models
 *.WAV
