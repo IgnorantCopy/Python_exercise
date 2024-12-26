@@ -9,6 +9,10 @@ tasks = ["MNLI", "QQP", "QNLI", "SST-2", "CoLA", "MRPC", "RTE"]
 data_path = "E:/DataSets/GLUE/"
 
 
+def main():
+    pass
+
+
 def get_model(model_name:str):
     if model_name == "roberta":
         return RobertaModel.from_pretrained("roberta-base"), RobertaTokenizer.from_pretrained("roberta-base")
@@ -26,3 +30,24 @@ def get_model(model_name:str):
         return ElectraForPreTraining.from_pretrained('google/electra-base-discriminator'), ElectraTokenizerFast.from_pretrained('google/electra-base-discriminator')
     elif model_name == "electra-small":
         return ElectraForPreTraining.from_pretrained('google/electra-small-discriminator'), ElectraTokenizerFast.from_pretrained('google/electra-small-discriminator')
+
+
+def get_dataset(task_name: str, tokenizer):
+    if task_name == "MNLI":
+        pass
+    elif task_name == "QQP":
+        pass
+    elif task_name == "QNLI":
+        pass
+    elif task_name == "SST-2":
+        pass
+    elif task_name == "CoLA":
+        df = pd.read_csv(data_path + "CoLA/")
+    elif task_name == "MRPC":
+        pass
+    elif task_name == "RTE":
+        pass
+
+
+if __name__ == '__main__':
+    main()
