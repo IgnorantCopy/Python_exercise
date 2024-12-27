@@ -1,0 +1,62 @@
+{'roberta-base': (np.float64(-0.6668712079411857), 0.31818644931227713),
+'distilroberta-base': (np.float64(-0.6671415932174133), 0.3544574630667346),
+'distilbert-base-uncased': (np.float64(-0.6756638614836611), 0.3495669893020886),
+'distilbert-base-cased': (np.float64(-0.6680148921987964), 0.31818644931227713),
+'albert-base-v1': (np.float64(-0.6648124004831873), 0.31777890983188994),
+'albert-base-v2': (np.float64(-0.6778057125813252), 0.3129903209373408),
+'google/electra-base-discriminator': (np.float64(-0.6898006588059022), 0.35374426897605704),
+'google/electra-small-discriminator': (np.float64(-0.6870697729075174), 0.32592969943963324)}
+
+{'roberta-base': (np.float64(-0.6903525751370817), 0.36816720257234725),
+'distilroberta-base': (np.float64(-0.6921468239205695), 0.3752164234479347),
+'distilbert-base-uncased': (np.float64(-0.7067284859542462), 0.6314617858026218),
+'distilbert-base-cased': (np.float64(-0.6907539833881908), 0.6318327974276527),
+'albert-base-v1': (np.float64(-0.7032790689640199), 0.6207271827850606),
+'albert-base-v2': (np.float64(-0.8861035195670466), 0.5706158792975513),
+'google/electra-base-discriminator': (np.float64(-0.7221690592331068), 0.40205293099183775),
+'google/electra-small-discriminator': (np.float64(-0.7931633685952473), 0.38978481325748204)}
+
+{'roberta-base': (np.float64(-0.7304076111599533), 0.5053999633900788),
+'distilroberta-base': (np.float64(-0.7269478840830267), 0.5053999633900788),
+'distilbert-base-uncased': (np.float64(-0.7498078207427354), 0.5059491122094087),
+'distilbert-base-cased': (np.float64(-0.7330545827240977), 0.5053999633900788),
+'albert-base-v1': (np.float64(-0.8385573247981173), 0.4462749405088779),
+'albert-base-v2': (np.float64(-0.8373558133644188), 0.6108365367014461),
+'google/electra-base-discriminator': (np.float64(-0.8108112224938284), 0.4891085484166209),
+'google/electra-small-discriminator': (np.float64(-0.7540980081274788), 0.5057660626029654)}
+
+{'roberta-base': (np.float64(-0.7268256752835144), 0.5091743119266054),
+'distilroberta-base': (np.float64(-0.7233684454962828), 0.4908256880733945),
+'distilbert-base-uncased': (np.float64(-0.7748668141212566), 0.4908256880733945),
+'distilbert-base-cased': (np.float64(-0.7334170626910271), 0.4908256880733945),
+'albert-base-v1': (np.float64(-0.725858284439111), 0.5091743119266054),
+'albert-base-v2': (np.float64(-0.7360488157394698), 0.5091743119266054),
+'google/electra-base-discriminator': (np.float64(-0.93695009779576), 0.463302752293578),
+'google/electra-small-discriminator': (np.float64(-0.7950320021015415), 0.5080275229357798)}
+
+{'roberta-base': (np.float64(-0.6498802986329981), 0.0),
+'distilroberta-base': (np.float64(-0.649353591866148), 0.0),
+'distilbert-base-uncased': (np.float64(-0.6535557185800781), 0.0),
+'distilbert-base-cased': (np.float64(-0.6629497776514827), np.float64(-0.020702674026557004)),
+'albert-base-v1': (np.float64(-0.6813965985956013), np.float64(-0.050053063945932626)),
+'albert-base-v2': (np.float64(-0.8527669466859753), np.float64(0.0131605114850958)),
+'google/electra-base-discriminator': (np.float64(-0.7085453017288657), np.float64(-0.24872339942979252)),
+'google/electra-small-discriminator': (np.float64(-0.6568967471383758), np.float64(-0.09879514341767758))}
+
+{'roberta-base': (np.float64(-0.6684711907009733), 0.6838235294117647),
+'distilroberta-base': (np.float64(-0.6605734204685059), 0.3161764705882353),
+'distilbert-base-uncased': (np.float64(-0.7800672459247497), 0.34558823529411764),
+'distilbert-base-cased': (np.float64(-0.6742665937261509), 0.3161764705882353),
+'albert-base-v1': (np.float64(-0.7347728540541906), 0.6617647058823529),
+'albert-base-v2': (np.float64(-0.7075568549893227), 0.6862745098039216),
+'google/electra-base-discriminator': (np.float64(-0.7312860104829308), 0.5024509803921569),
+'google/electra-small-discriminator': (np.float64(-0.7105793973508099), 0.3897058823529412)}
+
+{'roberta-base': (np.float64(-0.7418501029822269), 0.5270758122743683),
+'distilroberta-base': (np.float64(-0.737141361523981), 0.4729241877256318),
+'distilbert-base-uncased': (np.float64(-0.8110653208860729), 0.4729241877256318),
+'distilbert-base-cased': (np.float64(-0.746134405449635), 0.5054151624548736),
+'albert-base-v1': (np.float64(-1.0334017847553403), 0.51985559566787),
+'albert-base-v2': (np.float64(-0.8042318334011642), 0.5342960288808665),
+'google/electra-base-discriminator': (np.float64(-0.7433302111043687), 0.5270758122743683),
+'google/electra-small-discriminator': (np.float64(-0.7855434117694056), 0.5270758122743683)}

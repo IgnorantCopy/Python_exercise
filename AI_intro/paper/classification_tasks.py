@@ -14,7 +14,7 @@ from LogME import LogME
 
 # googlenet == inception_v1; mnasnet1_0 == NASNet-A Mobile
 pretrained_models = ["googlenet", "inception_v3", "resnet50", "resnet101", "resnet152", "densenet121", "densenet169", "densenet201", "mobilenet_v2", "mnasnet1_0"]
-dataset_names = ["Aircraft", "Caltech", "Cars", "CIFAR10", "CIFAR100", "DTD", "Pets", "SUN"]
+dataset_names = ["Aircraft", "Caltech", "Cars", "CIFAR10", "CIFAR100", "DTD", "Pets"]
 
 data_path = "E:/DataSets/"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -29,15 +29,15 @@ def grayscale_to_rgb(x):
 
 
 def main(dataset_name: str):
-    scores = {}
     fine_tune(dataset_name)
-    for model_name in pretrained_models:
-        transform = get_transform(model_name)
-        dataset, num_of_classes = get_dataset(dataset_name, transform)
-        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-        scores[model_name] = get_score(model_name, dataset_name, data_loader, num_of_classes)
-        print(f"{model_name}: {scores[model_name]}")
-    print(sorted(scores, key=lambda x: x[1][0]))
+    # scores = {}
+    # for model_name in pretrained_models:
+    #     transform = get_transform(model_name)
+    #     dataset, num_of_classes = get_dataset(dataset_name, transform)
+    #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    #     scores[model_name] = get_score(model_name, dataset_name, data_loader, num_of_classes)
+    #     print(f"{model_name}: {scores[model_name]}")
+    # print(scores)
 
 
 def get_score(model_name: str, dataset_name: str, data_loader, num_of_classes):
@@ -141,7 +141,7 @@ def forward(data_loader, net, fc_layer):
 
 
 def fine_tune(dataset_name: str):
-    for model_name in pretrained_models:
+    for model_name in pretrained_models[:5]:
         if os.path.exists(f"models/fine_tuned_{model_name}_{dataset_name}.pth"):
             print(f'Fine-tuned {model_name} on {dataset_name} already exists.')
             continue
