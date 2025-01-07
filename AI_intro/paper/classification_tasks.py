@@ -30,14 +30,14 @@ def grayscale_to_rgb(x):
 
 def main(dataset_name: str):
     fine_tune(dataset_name)
-    # scores = {}
-    # for model_name in pretrained_models:
-    #     transform = get_transform(model_name)
-    #     dataset, num_of_classes = get_dataset(dataset_name, transform)
-    #     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-    #     scores[model_name] = get_score(model_name, dataset_name, data_loader, num_of_classes)
-    #     print(f"{model_name}: {scores[model_name]}")
-    # print(scores)
+    scores = {}
+    for model_name in pretrained_models:
+        transform = get_transform(model_name)
+        dataset, num_of_classes = get_dataset(dataset_name, transform)
+        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+        scores[model_name] = get_score(model_name, dataset_name, data_loader, num_of_classes)
+        print(f"{model_name}: {scores[model_name]}")
+    print(scores)
 
 
 def get_score(model_name: str, dataset_name: str, data_loader, num_of_classes):
@@ -109,8 +109,6 @@ def get_dataset(dataset_name: str, transform):
         return datasets.DTD(root=data_path + dataset_name, download=True, transform=transform, split="val"), 47
     if dataset_name == "Pets":
         return datasets.OxfordIIITPet(root=data_path + dataset_name, download=True, transform=transform), 37
-    # if dataset_name == "SUN":
-    #     return datasets.SUN397(root=data_path + dataset_name, download=True, transform=transform), 397
 
 
 def forward(data_loader, net, fc_layer):
@@ -141,7 +139,7 @@ def forward(data_loader, net, fc_layer):
 
 
 def fine_tune(dataset_name: str):
-    for model_name in pretrained_models[:5]:
+    for model_name in pretrained_models:
         if os.path.exists(f"models/fine_tuned_{model_name}_{dataset_name}.pth"):
             print(f'Fine-tuned {model_name} on {dataset_name} already exists.')
             continue

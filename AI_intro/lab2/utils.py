@@ -111,12 +111,12 @@ class TreeNode:
         child.parent = self
 
     def update(self, score):
-        if self.piece_type == 1:
+        if self.piece_type == -1:
             self.right = min(self.right, score)
             if self.right <= self.left:
                 self.score = self.right
                 return True
-        elif self.piece_type == -1:
+        elif self.piece_type == 1:
             self.left = max(self.left, score)
             if self.left >= self.right:
                 self.score = self.left

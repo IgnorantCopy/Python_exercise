@@ -14,6 +14,72 @@ models = ["roberta-base", "distilroberta-base", "distilbert-base-uncased", "dist
           "albert-base-v1", "albert-base-v2", "google/electra-base-discriminator", "google/electra-small-discriminator"]
 tasks = ["mnli", "qqp", "qnli", "sst2", "cola", "mrpc", "rte"]
 
+pretrained_models = {
+    "roberta-base": {
+        "mnli": "TehranNLP-org/roberta-base-mnli-2e-5-42",
+        "qqp": "TehranNLP-org/roberta-base-qqp-2e-5-42",
+        "qnli": "textattack/roberta-base-QNLI",
+        "sst2": "textattack/roberta-base-SST-2",
+        "cola": "textattack/roberta-base-CoLA",
+        "mrpc": "TehranNLP-org/roberta-base-mrpc-2e-5-42",
+        "rte": "textattack/roberta-base-RTE",
+    },
+    "distilroberta-base": {
+        "mnli": "rambodazimi/distilroberta-base-finetuned-LoRA-MNLI",
+        "qqp": "Shobhank-iiitdwd/Distilroberta-base-QQP",
+        "qnli": "cross-encoder/qnli-distilroberta-base",
+        "sst2": "azizbarank/distilroberta-base-sst-2-distilled",
+        "cola": "mohammedbriman/distilroberta-base-finetuned-cola",
+        "mrpc": "EugenioRoma/distilroberta-base-mrpc-glue",
+        "rte": "rambodazimi/distilroberta-base-finetuned-LoRA-RTE",
+    },
+    "distilbert-base-uncased": {
+        "mnli": "typeform/distilbert-base-uncased-mnli",
+        "qqp": "textattack/distilbert-base-uncased-QQP",
+        "qnli": "textattack/distilbert-base-uncased-QNLI",
+        "sst2": "distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+        "cola": "textattack/distilbert-base-uncased-CoLA",
+        "mrpc": "textattack/distilbert-base-uncased-MRPC",
+        "rte": "Vineetttt/distilbert-base-uncased-finetuned-rte",
+    },
+    "distilbert-base-cased": {
+        "mnli": None,
+        "qqp": "textattack/distilbert-base-cased-QQP",
+        "qnli": "HeZhang1019/distilbert-base-cased-distilled-qnli-v1",
+        "sst2": "textattack/distilbert-base-cased-SST-2",
+        "cola": "textattack/distilbert-base-cased-CoLA",
+        "mrpc": "textattack/distilbert-base-cased-MRPC",
+        "rte": None,
+    },
+    "albert-base-v2": {
+        "mnli": "Alireza1044/albert-base-v2-mnli",
+        "qqp": "Alireza1044/albert-base-v2-qqp",
+        "qnli": "Alireza1044/albert-base-v2-qnli",
+        "sst2": "Alireza1044/albert-base-v2-sst2",
+        "cola": "Alireza1044/albert-base-v2-cola",
+        "mrpc": "Alireza1044/albert-base-v2-mrpc",
+        "rte": "Alireza1044/albert-base-v2-rte",
+    },
+    "google/electra-base-discriminator": {
+        "mnli": "TehranNLP-org/electra-base-mnli",
+        "qqp": "TehranNLP-org/electra-base-qqp-2e-5-42",
+        "qnli": "cross-encoder/qnli-electra-base",
+        "sst2": "TehranNLP-org/electra-base-sst2",
+        "cola": "pszemraj/electra-base-discriminator-CoLA",
+        "mrpc": "TehranNLP-org/electra-base-mrpc-2e-5-42",
+        "rte": "anirudh21/electra-base-discriminator-finetuned-rte",
+    },
+    "google/electra-small-discriminator": {
+        "mnli": "howey/electra-small-mnli",
+        "qqp": "howey/electra-small-qqp",
+        "qnli": None,
+        "sst2": "Hazqeel/electra-small-finetuned-sst2",
+        "cola": "pszsemraj/electra-small-discriminator-CoLA",
+        "mrpc": "Intel/electra-small-discriminator-mrpc",
+        "rte": None,
+    }
+}
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 epoches = 3
 
