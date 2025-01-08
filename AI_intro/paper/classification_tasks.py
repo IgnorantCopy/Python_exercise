@@ -42,7 +42,13 @@ def main(dataset_name: str):
         transform = get_transform(model_name)
         dataset, num_of_classes = get_dataset(dataset_name, transform)
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-        scores[model_name] = get_score(model_name, dataset_name, data_loader, num_of_classes)
+        leep_score, nce_score, logme_score, accuracy, logme_time, nce_time, leep_time, = (
+            get_score(model_name, dataset_name, data_loader, num_of_classes))
+        scores[model_name] = {
+            "score": [logme_score, leep_score, nce_score],
+            "accuracy": accuracy,
+            "time": [logme_time, leep_time, nce_time],
+        }
         print(f"{model_name}: {scores[model_name]}")
     print(scores)
 
@@ -57,9 +63,16 @@ def get_score(model_name: str, dataset_name: str, data_loader, num_of_classes):
     F, Y, P, accuracy = forward(data_loader, net, fc_layer)
 
     logme = LogME(is_regression=False)
-    leep = LEEP(P.numpy(), Y.numpy())
-    nce = NCE(np.argmax(P.numpy(), axis=1), Y.numpy())
-    return leep, nce, logme.fit(F.numpy(), Y.numpy()), accuracy
+    start_time = time.time()
+    leep_score = LEEP(P.numpy(), Y.numpy())
+    leep_time = time.time() - start_time
+    start_time = time.time()
+    nce_score = NCE(np.argmax(P.numpy(), axis=1), Y.numpy())
+    nce_time = time.time() - start_time
+    start_time = time.time()
+    logme_score = logme.fit(F.numpy(), Y.numpy())
+    logme_time = time.time() - start_time
+    return leep_score, nce_score, logme_score, accuracy, logme_time, nce_time, leep_time
 
 
 def get_transform(model_name: str):
