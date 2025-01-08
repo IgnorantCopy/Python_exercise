@@ -14,6 +14,6 @@ def LEEP(pseudo_source_label: np.ndarray, target_label: np.ndarray):
     p_target_given_source = (joint / joint.sum(axis=0, keepdims=True)).T  #P(y|z)
     empirical_prediction = np.matmul(pseudo_source_label, p_target_given_source)    #P(y)=P(z)*P(y|z)
     empirical_prob = np.array([predict[label] for predict, label in zip(empirical_prediction, target_label)])
-    empirical_prob = np.maximum(empirical_prob, 1e-20)  #防止 log(0)
+    empirical_prob = np.maximum(empirical_prob, 1e-6)  #防止 log(0)
     leep_score = np.mean(np.log(empirical_prob))
     return leep_score
