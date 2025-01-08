@@ -11,8 +11,8 @@ from torchvision.models import GoogLeNet_Weights, Inception_V3_Weights, ResNet50
     MNASNet1_0_Weights
 
 from LogME import LogME
-from LogME_main.LEEP import LEEP
-from LogME_main.NCE import NCE
+from LEEP import LEEP
+from NCE import NCE
 import numpy as np
 
 
