@@ -88,6 +88,20 @@ def tau_w(num_of_models: int, T: list, S: list):
     return (2. / (num_of_models * (num_of_models - 1))) * tau
 
 
+def read_file(file_path):
+    """
+    自定义读取文件类
+    :param file_path:
+    :return:
+    """
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for line in lines:
+            if line:
+                result = re.findall(r"-?\d+\.\d+", line)    # 获取所有数字
+                # 你的操作
+
+
 def main(num_of_models: int):
     tau_ws = []
     ncols = len(maps[num_of_models][1])
