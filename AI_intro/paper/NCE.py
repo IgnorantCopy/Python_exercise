@@ -16,5 +16,5 @@ def NCE(source_label: np.ndarray, target_label: np.ndarray):
     mask = p_z.reshape(-1) != 0 #过滤 P(z)==0
     p_target_given_source = p_target_given_source[mask] + 1e-20  #防止 log(0)
     entropy_y_given_z = np.sum(- p_target_given_source * np.log(p_target_given_source), axis=1, keepdims=True)  #H(y|z)
-    conditional_entropy = np.inner(entropy_y_given_z, p_z.reshape((-1, 1))[mask])    #CE
+    conditional_entropy = np.sum(entropy_y_given_z * p_z.reshape((-1, 1))[mask])    #CE
     return - conditional_entropy    #NCE

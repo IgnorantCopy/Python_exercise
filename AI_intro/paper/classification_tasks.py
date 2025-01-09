@@ -11,6 +11,13 @@ from torchvision.models import GoogLeNet_Weights, Inception_V3_Weights, ResNet50
     MNASNet1_0_Weights
 
 from LogME import LogME
+from LEEP import LEEP
+from NCE import NCE
+import numpy as np
+
+
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
 
 # googlenet == inception_v1; mnasnet1_0 == NASNet-A Mobile
 pretrained_models = ["googlenet", "inception_v3", "resnet50", "resnet101", "resnet152", "densenet121", "densenet169", "densenet201", "mobilenet_v2", "mnasnet1_0"]
@@ -35,7 +42,13 @@ def main(dataset_name: str):
         transform = get_transform(model_name)
         dataset, num_of_classes = get_dataset(dataset_name, transform)
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-        scores[model_name] = get_score(model_name, dataset_name, data_loader, num_of_classes)
+        leep_score, nce_score, logme_score, accuracy, logme_time, nce_time, leep_time, = (
+            get_score(model_name, dataset_name, data_loader, num_of_classes))
+        scores[model_name] = {
+            "score": [logme_score, leep_score, nce_score],
+            "accuracy": accuracy,
+            "time": [logme_time, leep_time, nce_time],
+        }
         print(f"{model_name}: {scores[model_name]}")
     print(scores)
 
@@ -47,10 +60,19 @@ def get_score(model_name: str, dataset_name: str, data_loader, num_of_classes):
     fc_layer.out_features = num_of_classes
     net.load_state_dict(torch.load(f"models/fine_tuned_{model_name}_{dataset_name}.pth"))
     net.to(device)
-    F, Y, accuracy = forward(data_loader, net, fc_layer)
+    F, Y, P, accuracy = forward(data_loader, net, fc_layer)
 
     logme = LogME(is_regression=False)
-    return logme.fit(F.numpy(), Y.numpy()), accuracy
+    start_time = time.time()
+    leep_score = LEEP(P.numpy(), Y.numpy())
+    leep_time = time.time() - start_time
+    start_time = time.time()
+    nce_score = NCE(np.argmax(P.numpy(), axis=1), Y.numpy())
+    nce_time = time.time() - start_time
+    start_time = time.time()
+    logme_score = logme.fit(F.numpy(), Y.numpy())
+    logme_time = time.time() - start_time
+    return leep_score, nce_score, logme_score, accuracy, logme_time, nce_time, leep_time
 
 
 def get_transform(model_name: str):
@@ -114,6 +136,7 @@ def get_dataset(dataset_name: str, transform):
 def forward(data_loader, net, fc_layer):
     F = []
     Y = []
+    P = []
 
     def hook_fn(_, input, __):
         F.append(input[0].detach().to(device))
@@ -128,6 +151,7 @@ def forward(data_loader, net, fc_layer):
             Y.append(ground_truth)
             output = net(data)
             _, predicted = torch.max(output.data, 1)
+            P.append(output.data)
             for label, prediction in zip(ground_truth, predicted):
                 if label == prediction:
                     correct += 1
@@ -135,7 +159,8 @@ def forward(data_loader, net, fc_layer):
     forward_hook.remove()
     F = torch.cat([i for i in F])
     Y = torch.cat([i for i in Y])
-    return F, Y, 100 * correct / total
+    P = torch.cat([i for i in P])
+    return F, Y, P, 100 * correct / total
 
 
 def fine_tune(dataset_name: str):
